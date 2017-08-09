@@ -1,0 +1,104 @@
+/*
+ -----BEGIN ALGO DEFINITION-----
+ {
+ "id": "smart",
+ "description": "Smart B/S",
+ "params": [],
+ "creator": "smart.BS.create",
+ "destructor": "smart.BS.destroy",
+ "permissions": ["notification", "balance", "execution_report", "new_order_limited", "cancel_order"]
+ }
+ -----END ALGO DEFINITION-----
+ -----BEGIN ALGO-----
+ /**/
+
+
+/**
+ * Namespace.
+ */
+var smart = {};
+
+/**
+ * Workaround using yahoo yql api to make cross domain requests
+ * @param {string} url
+ * @param {function(*)} fn
+ * @param {Object} selfObj
+ */
+function crossDomainRequest( url, fn, selfObj) {
+  var callback_function_name = 'yqlCallback' + parseInt(Math.random() * 1000000, 10);
+  self[callback_function_name] = function( yqlResult ) {
+    goog.bind(fn,selfObj, yqlResult.query.results)();
+  };
+
+  var yql = 'select * from json where url="' + url + '"';
+  var uri = 'https://query.yahooapis.com/v1/public/yql?q=' +
+      encodeURIComponent(yql) + '&format=json&callback=' + callback_function_name ;
+  importScripts(uri);
+}
+
+/**
+ * @param {Object} application
+ * @param {string} symbol
+ * @constructor
+ */
+smart.BS = function(application, symbol){
+  this.application_ = application;
+  this.symbol_ = symbol;
+  global_instance = this;
+
+};
+
+/**
+ * @type {number}
+ */
+smart.BS.prototype.last_best_bid_;
+
+/**
+ * @type {number}
+ */
+smart.BS.prototype.last_best_ask_;
+
+/**
+ * @param {Application} application
+ * @param {string} symbol
+ * @return {smart.BS}
+ */
+smart.BS.create = function(application,symbol) {
+  return new smart.BS(application,symbol);
+};
+
+/**
+ * @param {Object} params
+ */
+smart.BS.prototype.start = function(params) {
+  this.application_.showNotification('SMART', 'Started!' );
+};
+
+
+smart.BS.prototype.stop = function() {
+  clearInterval(this.timer_);
+};
+
+/**
+ * @param {Object.<string,*>} params
+ */
+smart.BS.prototype.onUpdateParams = function(params) {};
+
+
+
+smart.BS.prototype.onMBCallBack_ = function(ticker){
+  var best_bid = parseFloat(ticker['ticker']['buy']);
+  var best_ask = parseFloat(ticker['ticker']['sell']);
+
+  if (this.last_best_bid_ !=  best_bid) {
+    this.last_best_bid_ = best_bid;
+    this.application_.showNotification('MercadoBitcoin', 'The new best bid is ' + best_bid, 'success' );
+  }
+
+  if ( this.last_best_ask_ !=  best_ask ) {
+    this.last_best_ask_ = best_ask;
+    this.application_.showNotification('MercadoBitcoin', 'The new best ask is ' + best_ask, 'info' );
+  }
+};
+
+//-----END ALGO-----

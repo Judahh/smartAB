@@ -1,0 +1,158 @@
+/*
+-----BEGIN ALGO DEFINITION-----
+{
+    "id": "blinktrade",
+    "description": "Make sure your order is always on top",
+    "params": [
+      {"name":"fee", "label":"Fee", "type":"number", "value":"0.25", "filter":"positive_number", "validator":"required; validateMin 0; validateMax 100; validateNumber;" }
+    ],
+    "creator": "blinktrade.SmartOrderAlgo.create",
+    "destructor": "blinktrade.SmartOrderAlgo.destroy",
+    "permissions": ["notification", "balance", "execution_report", "new_order_limited", "cancel_order"],
+    "tickers" : ["UOL:USDBRT","BITFINEX:BTCUSD", "OKCOIN:BTCCNY"]
+}
+-----END ALGO DEFINITION-----
+-----BEGIN ALGO-----
+/**/
+
+/**
+  * Namespace. 
+  */
+var blinktrade = {};
+
+/**
+  * @param {Object} application
+  * @param {string} symbol
+  * @constructor
+  */
+blinktrade.SmartOrderAlgo = function(application, symbol){
+  this.application_ = application;
+  this.symbol_ = symbol;
+
+  this.my_orders_prefix_ = 'p' + parseInt( 1e4 * Math.random() , 10 ) + '_';
+  // this.application_.showNotification('Smart', 'my_orders_prefix_ ' + this.my_orders_prefix_, 'info' );
+};
+
+/**
+ * @type {Object}
+ */
+blinktrade.SmartOrderAlgo.prototype.current_order_;
+
+
+/**
+ * @type {number}
+ */
+blinktrade.SmartOrderAlgo.prototype.fee;
+
+/**
+ * @type {number}
+ */
+blinktrade.SmartOrderAlgo.prototype.target_price_;
+
+
+/**
+  * @param {Application} application
+  * @param {string} symbol
+  * @return {blinktrade.SmartOrderAlgo}
+  */
+blinktrade.SmartOrderAlgo.create = function(application,symbol) {
+  return new blinktrade.SmartOrderAlgo(application,symbol);
+};
+
+/**
+  * @param {Object} params
+  */
+blinktrade.SmartOrderAlgo.prototype.start = function(params) {
+  this.fee = params["fee"];
+  this.application_.showNotification('Fee', this.fee+'%', 'info' );
+
+  var balanceCrypto = this.application_.getBalance('BTC', 'available' );
+  var balanceRegular = this.application_.getBalance('BRL', 'available' );
+
+  var balanceCrypto = this.application_.getBalance('BTC', 'available' );
+  var balanceRegular = this.application_.getBalance('BRL', 'available' );
+
+  var balanceCrypto = this.application_.getBalance('BTC', 'available' );
+  var balanceRegular = this.application_.getBalance('BRL', 'available' );
+
+  this.application_.showNotification('BRL', balanceRegular, 'info' );
+  this.application_.showNotification('BTC', balanceCrypto, 'info' );
+
+  this.application_.showNotification('BRL', balanceRegular, 'info' );
+  this.application_.showNotification('BTC', balanceCrypto, 'info' );
+
+  this.application_.showNotification('BRL', balanceRegular, 'info' );
+  this.application_.showNotification('BTC', balanceCrypto, 'info' );
+
+  this.sendOrders();
+
+  this.timer_ = setInterval(goog.bind(this.sendOrders, this), 1000 ); // every 1 second
+};
+
+blinktrade.SmartOrderAlgo.prototype.stop = function() {
+  clearInterval(this.timer_);
+};
+
+/**
+  * @param {Object} msg 
+  */
+blinktrade.SmartOrderAlgo.prototype.onTicker = function(msg) {
+  console.log(msg);
+};
+
+/**
+  * @param {Object.<string,*>} params
+  */
+blinktrade.SmartOrderAlgo.prototype.onUpdateParams = function(params) {
+  this.sendOrders();
+};
+
+/**
+ *
+ * @param {Object.<string,string|number>} msg
+ */
+blinktrade.SmartOrderAlgo.prototype.onExecutionReport  = function(msg) {
+};
+
+
+blinktrade.SmartOrderAlgo.prototype.cancellAlgoOrders = function() {
+  if (goog.isDefAndNotNull(this.current_order_)) {
+    this.application_.cancelOrder(this.current_order_['ClOrdID']);
+  }
+  this.current_order_ = null;
+};
+
+/**
+ * Invoked whenever your balance change
+ * @param {string} currency
+ * @param {number} balance
+ * @param {AlgorithmTradingInterface.BalanceType} balance_type
+ */
+blinktrade.SmartOrderAlgo.prototype.onBalanceUpdate = function(currency, balance, balance_type) { 
+  // var balanceCrypto = this.application_.getBalance('BTC', 'available' );
+  // var balanceRegular = this.application_.getBalance('BRL', 'available' );
+
+  // this.application_.showNotification('BRL', balanceRegular, 'info' );
+  // this.application_.showNotification('BTC', balanceCrypto, 'info' );
+};
+
+blinktrade.SmartOrderAlgo.prototype.sendOrders = function() {
+  var order_book = this.application_.getOrderBook();
+
+  var best_market_price;
+  var order_at_top_of_the_book;
+  var counter_order_at_top_of_the_book;
+
+  order_at_top_of_the_book = order_book["bids"][0];
+  counter_order_at_top_of_the_book = order_book["asks"][0];
+
+  this.application_.showNotification('Compra', 'R$:'+order_book["bids"][0][0]/100000000, 'info' );
+  this.application_.showNotification('Compra', 'QTD:'+order_book["bids"][0][1]/100000000, 'info' );
+
+  this.application_.showNotification('Vende', 'R$:'+order_book["asks"][0][0]/100000000, 'info' );
+  this.application_.showNotification('Vende', 'QTD:'+order_book["asks"][0][1]/100000000, 'info' );
+};
+
+
+
+//-----END ALGO-----
