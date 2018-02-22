@@ -156,3 +156,42 @@ blinktrade.SmartOrderAlgo.prototype.sendOrders = function() {
 
 
 //-----END ALGO-----
+
+//[100%] PermMissingElem (JS)
+
+
+//mathematical approach
+function solution(A) {
+    var s0 = 0;
+    var s1 = 0;
+    
+    for(var index=0;index<A.length;index++){
+        s0+=(index+1);
+        s1+=A[index];
+    }
+
+    s0+=(A.length+1);
+    return s0-s1;
+}
+
+//seek and destroy approach
+
+function solution(A) {
+    var array = {};
+    var a = {};
+    
+    for(var index=0;index<A.length;index++){
+        array[index] = (index+1);
+        a[A[index]] = 1;
+    }
+
+    array[index] = (A.length+1);
+    
+    for(var index in array){
+        var element = array[index];
+        if (!a[element]) {
+            return element;
+        }
+    }
+    return 0;
+}
